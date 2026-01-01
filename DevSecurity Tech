@@ -1,0 +1,887 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#0a0a0a">
+    <title>DevSecurity Tech - Desarrolladores & Analistas de Ciberseguridad</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        html {
+            scroll-behavior: smooth;
+            -webkit-text-size-adjust: 100%;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #0a0a0a;
+            min-height: 100vh;
+            overflow-x: hidden;
+            color: #00ff88;
+            position: relative;
+            touch-action: pan-y;
+            cursor: auto;
+        }
+
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: 
+                repeating-linear-gradient(
+                    0deg,
+                    rgba(0, 255, 136, 0.03),
+                    rgba(0, 255, 136, 0.03) 1px,
+                    transparent 1px,
+                    transparent 2px
+                );
+            pointer-events: none;
+            z-index: 1;
+            animation: scanlines 8s linear infinite;
+        }
+
+        @keyframes scanlines {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(10px); }
+        }
+
+        /* Cursor personalizado desactivado - mostrar cursor normal */
+        .custom-cursor {
+            display: none;
+        }
+
+        .custom-cursor::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 20px;
+            height: 20px;
+            border: 2px solid #00ff88;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88, inset 0 0 10px rgba(0, 255, 136, 0.5);
+            animation: cursor-pulse 1.5s ease-in-out infinite;
+        }
+
+        .custom-cursor::after {
+            content: '+';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #00ff88;
+            font-size: 20px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ff88, 0 0 20px #00ff88;
+            animation: cursor-rotate 3s linear infinite;
+        }
+
+        @keyframes cursor-pulse {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1);
+                opacity: 1;
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.2);
+                opacity: 0.8;
+            }
+        }
+
+        @keyframes cursor-rotate {
+            0% { transform: translate(-50%, -50%) rotate(0deg); }
+            100% { transform: translate(-50%, -50%) rotate(360deg); }
+        }
+
+        .custom-cursor.hover::before {
+            border-color: #ff0080;
+            box-shadow: 0 0 15px #ff0080, 0 0 30px #ff0080, inset 0 0 15px rgba(255, 0, 128, 0.5);
+            animation: cursor-pulse-fast 0.8s ease-in-out infinite;
+        }
+
+        .custom-cursor.hover::after {
+            color: #ff0080;
+            text-shadow: 0 0 15px #ff0080, 0 0 30px #ff0080;
+            font-size: 24px;
+        }
+
+        @keyframes cursor-pulse-fast {
+            0%, 100% { 
+                transform: translate(-50%, -50%) scale(1);
+            }
+            50% { 
+                transform: translate(-50%, -50%) scale(1.3);
+            }
+        }
+
+        /* Cursor solo en desktop */
+        @media (pointer: coarse) {
+            body {
+                cursor: auto;
+            }
+            .custom-cursor,
+            .cursor-trail,
+            .cursor-particle {
+                display: none !important;
+            }
+        }
+
+        @media (pointer: fine) {
+            body {
+                cursor: auto;
+            }
+        }
+
+        /* Rastro del cursor */
+        .cursor-trail {
+            position: fixed;
+            width: 8px;
+            height: 8px;
+            background: #00ff88;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.6;
+            box-shadow: 0 0 10px #00ff88;
+            animation: trail-fade 0.5s ease-out forwards;
+        }
+
+        @keyframes trail-fade {
+            to {
+                opacity: 0;
+                transform: scale(0);
+            }
+        }
+
+        /* Partículas al hacer clic */
+        .cursor-particle {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: #00ff88;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9997;
+            box-shadow: 0 0 8px #00ff88;
+        }
+
+        /* Sistema de carga animado */
+        .loading-system {
+            font-size: 0.9rem;
+            color: #00aa66;
+            margin-top: 20px;
+            min-height: 60px;
+        }
+
+        .loading-text {
+            display: inline-block;
+            animation: pulse-text 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse-text {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        .loading-bar-container {
+            width: 90%;
+            max-width: 400px;
+            height: 20px;
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            margin: 15px auto;
+            padding: 3px;
+            background: rgba(0, 0, 0, 0.5);
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.3), inset 0 0 10px rgba(0, 255, 136, 0.1);
+        }
+
+        .loading-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00ffff, #00ff88);
+            background-size: 200% 100%;
+            border-radius: 6px;
+            width: 0%;
+            transition: width 0.3s ease;
+            box-shadow: 0 0 20px #00ff88;
+            animation: gradient-flow 2s linear infinite;
+        }
+
+        @keyframes gradient-flow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 200% 50%; }
+        }
+
+        .loading-percentage {
+            color: #00ffff;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ffff;
+            margin-top: 10px;
+            font-size: 1.1rem;
+        }
+
+        .system-log {
+            color: #00aa66;
+            font-size: 0.85rem;
+            margin-top: 5px;
+            text-align: left;
+            max-width: 90%;
+            width: 500px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+
+        .log-line {
+            opacity: 0;
+            animation: fade-in 0.3s ease forwards;
+        }
+
+        @keyframes fade-in {
+            to { opacity: 1; }
+        }
+
+        .log-success {
+            color: #00ff88;
+        }
+
+        /* Secciones */
+        .section {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            text-align: center;
+            position: relative;
+            z-index: 2;
+            border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+        }
+
+        .section::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(0, 255, 136, 0.05), transparent);
+            pointer-events: none;
+        }
+
+        .section-content {
+            position: relative;
+            z-index: 3;
+            max-width: 1200px;
+            width: 100%;
+        }
+
+        .section h1 {
+            font-size: clamp(2rem, 8vw, 5rem);
+            margin-bottom: 20px;
+            color: #00ff88;
+            text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88;
+            animation: glitch 0.3s infinite;
+            letter-spacing: 3px;
+            word-wrap: break-word;
+        }
+
+        .section h2 {
+            font-size: clamp(1.5rem, 6vw, 3rem);
+            margin-bottom: 20px;
+            color: #00ff88;
+            text-shadow: 0 0 15px #00ff88, 0 0 30px #00ff88;
+            letter-spacing: 2px;
+        }
+
+        .section p {
+            font-size: clamp(0.9rem, 3vw, 1.3rem);
+            max-width: 700px;
+            margin: 15px auto;
+            color: #00dd77;
+            text-shadow: 0 0 10px #00ff88;
+            letter-spacing: 1px;
+            padding: 0 10px;
+        }
+
+        @keyframes glitch {
+            0%, 100% { text-shadow: 0 0 20px #00ff88, 0 0 40px #00ff88; }
+            50% { text-shadow: 0 0 20px #00aa44, 0 0 40px #00aa44; }
+        }
+
+        .developer-card {
+            background: linear-gradient(135deg, rgba(0, 255, 136, 0.1), rgba(0, 150, 100, 0.05));
+            border: 2px solid #00ff88;
+            border-radius: 10px;
+            padding: 30px 20px;
+            margin: 20px auto;
+            width: 100%;
+            max-width: 320px;
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.3), inset 0 0 20px rgba(0, 255, 136, 0.1);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .developer-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(0, 255, 136, 0.1), transparent);
+            animation: pulse-glow 3s ease-in-out infinite;
+        }
+
+        @keyframes pulse-glow {
+            0%, 100% { opacity: 0.5; }
+            50% { opacity: 1; }
+        }
+
+        .developer-card:hover,
+        .developer-card:active {
+            border-color: #00ffff;
+            box-shadow: 0 0 30px rgba(0, 255, 136, 0.5), inset 0 0 30px rgba(0, 255, 136, 0.2);
+            transform: translateY(-10px);
+        }
+
+        .developer-card h3 {
+            font-size: clamp(1.3rem, 4vw, 2rem);
+            margin-bottom: 10px;
+            color: #00ffff;
+            text-shadow: 0 0 15px #00ffff;
+            position: relative;
+            z-index: 2;
+        }
+
+        .developer-card .role {
+            font-size: clamp(0.9rem, 3vw, 1.2rem);
+            color: #ff0080;
+            margin-bottom: 15px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #ff0080;
+            position: relative;
+            z-index: 2;
+        }
+
+        .developer-card p {
+            position: relative;
+            z-index: 2;
+            color: #00dd77;
+            font-size: clamp(0.85rem, 2.5vw, 1rem);
+        }
+
+        .skills {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: center;
+            margin-top: 20px;
+            position: relative;
+            z-index: 2;
+        }
+
+        .skill-badge {
+            background: rgba(0, 255, 136, 0.1);
+            border: 1px solid #00ff88;
+            border-radius: 20px;
+            padding: 8px 16px;
+            font-size: clamp(0.75rem, 2vw, 0.9rem);
+            color: #00ff88;
+            text-shadow: 0 0 5px #00ff88;
+            transition: all 0.3s ease;
+            cursor: pointer;
+            -webkit-user-select: none;
+            user-select: none;
+        }
+
+        .skill-badge:hover,
+        .skill-badge:active {
+            background: rgba(0, 255, 136, 0.3);
+            box-shadow: 0 0 10px #00ff88;
+            transform: scale(1.1);
+        }
+
+        .cta-button {
+            background: linear-gradient(45deg, #ff0080, #ff00ff);
+            border: 2px solid #ff0080;
+            color: #00ff88;
+            padding: 15px 40px;
+            font-size: clamp(0.9rem, 3vw, 1.1rem);
+            border-radius: 5px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 20px rgba(255, 0, 128, 0.5);
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 30px;
+            font-weight: bold;
+            text-shadow: 0 0 10px #00ff88;
+            letter-spacing: 1px;
+            -webkit-user-select: none;
+            user-select: none;
+            touch-action: manipulation;
+        }
+
+        .cta-button:hover,
+        .cta-button:active {
+            transform: translateY(-3px);
+            box-shadow: 0 0 30px rgba(255, 0, 128, 0.8), 0 0 40px rgba(0, 255, 136, 0.5);
+            border-color: #00ffff;
+        }
+
+        .developers-container {
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 50px;
+        }
+
+        .scroll-indicator {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #00ff88;
+            font-size: clamp(1rem, 3vw, 1.2rem);
+            animation: bounce-glow 2s infinite;
+            z-index: 1000;
+            text-shadow: 0 0 10px #00ff88;
+            letter-spacing: 2px;
+        }
+
+        @keyframes bounce-glow {
+            0%, 100% { transform: translateX(-50%) translateY(0); opacity: 1; }
+            50% { transform: translateX(-50%) translateY(-10px); opacity: 0.7; }
+        }
+
+        .title-bracket {
+            color: #00ffff;
+            font-weight: bold;
+        }
+
+        /* Media queries específicas para móviles */
+        @media (max-width: 768px) {
+            .section {
+                padding: 40px 15px;
+                min-height: 100svh;
+            }
+
+            .section h1 {
+                margin-bottom: 15px;
+                letter-spacing: 1px;
+            }
+
+            .section h2 {
+                letter-spacing: 1px;
+            }
+
+            .developer-card {
+                margin: 15px auto;
+                padding: 25px 15px;
+            }
+
+            .loading-bar-container {
+                width: 95%;
+                max-width: 300px;
+            }
+
+            .system-log {
+                font-size: 0.7rem;
+                padding: 0 10px;
+            }
+
+            .cta-button {
+                padding: 12px 30px;
+                margin-top: 20px;
+            }
+
+            .scroll-indicator {
+                bottom: 20px;
+            }
+        }
+
+        /* Soporte para iOS */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                min-height: -webkit-fill-available;
+            }
+            
+            .section {
+                min-height: -webkit-fill-available;
+            }
+        }
+
+        /* Mejoras táctiles para móviles */
+        @media (pointer: coarse) {
+            .developer-card,
+            .skill-badge,
+            .cta-button {
+                transition: all 0.2s ease;
+            }
+
+            .developer-card:active {
+                transform: scale(0.98);
+            }
+
+            .skill-badge:active {
+                transform: scale(1.05);
+            }
+
+            .cta-button:active {
+                transform: translateY(-2px) scale(0.98);
+            }
+        }
+
+        /* Landscape mode para móviles */
+        @media (max-width: 768px) and (orientation: landscape) {
+            .section {
+                min-height: auto;
+                padding: 30px 15px;
+            }
+
+            .section h1 {
+                font-size: 2.5rem;
+            }
+
+            .section h2 {
+                font-size: 2rem;
+            }
+        }
+
+        /* Tablets */
+        @media (min-width: 769px) and (max-width: 1024px) {
+            .section h1 {
+                font-size: 4rem;
+            }
+
+            .section h2 {
+                font-size: 2.5rem;
+            }
+
+            .developer-card {
+                max-width: 350px;
+            }
+        }
+
+        /* Prevenir zoom en inputs en iOS */
+        input, select, textarea {
+            font-size: 16px !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="custom-cursor"></div>
+
+    <!-- Sección 1: Presentación -->
+    <section class="section">
+        <div class="section-content">
+            <h1><span class="title-bracket">&lt;</span> DevSecurity Tech <span class="title-bracket">/&gt;</span></h1>
+            <p>$ Desarrolladores de Aplicaciones Web y Móviles, & Analistas de Ciberseguridad</p>
+            <p style="font-size: 1.1rem;">$ Soluciones web seguras, eficientes y devastadoras</p>
+            
+            <div class="loading-system">
+                <div class="loading-text">> INICIALIZANDO SISTEMA...</div>
+                <div class="loading-bar-container">
+                    <div class="loading-bar" id="loadingBar"></div>
+                </div>
+                <div class="loading-percentage" id="loadingPercentage">0%</div>
+                <div class="system-log" id="systemLog"></div>
+            </div>
+            
+            <button class="cta-button" onclick="scrollToSection(1)">[ CONOCE NUESTRO EQUIPO ]</button>
+        </div>
+    </section>
+
+    <!-- Sección 2: Equipo -->
+    <section class="section">
+        <div class="section-content">
+            <h2><span class="title-bracket">$</span> NUESTRO EQUIPO</h2>
+            <p>$ Especialistas en desarrollo y seguridad ofensiva</p>
+            <div class="developers-container">
+                <div class="developer-card">
+                    <h3>👨‍💻 Eduardo Flores</h3>
+                    <div class="role">>DEVELOPER & CYBERSECURITY ANALYST</div>
+                    <p>Estudiante de Ingeniería en desarrollo de Software y Redes. Desarrollador de app Web &   Mobile, Especialista en penetration testing, análisis de vulnerabilidades y protección ofensiva. Certificaciones: Cisco Cybersecurity & TryHackMe Labs</p>
+                    <div class="skills">
+                        <span class="skill-badge">Web Dev</span>
+                        <span class="skill-badge">Mobile Dev</span>
+                        <span class="skill-badge">Pentesting</span>
+                        <span class="skill-badge">Web Audit</span>
+                        <span class="skill-badge">Python</span>
+                        <span class="skill-badge">Kali Linux</span>
+                        <span class="skill-badge">Cisco Certified</span>
+                        <span class="skill-badge">TryHackMe Certified</span>
+                    </div>
+                </div>
+                <div class="developer-card">
+                    <h3>👨‍💻 Alfonso Preciado</h3>
+                    <div class="role">>DEVELOPER & CYBERSECURITY ANALYST</div>
+                    <p>Estudiante de Ingeniería en desarrollo de Software y Redes. Arquitecto de sistemas escalables, experto en optimización y rendimiento extremo.</p>
+                    <div class="skills">
+                        <span class="skill-badge">React</span>
+                        <span class="skill-badge">Node.js</span>
+                        <span class="skill-badge">Mobile Dev</span>
+                        <span class="skill-badge">Kali Linux</span>
+                        <span class="skill-badge">Forensics</span>
+                        <span class="skill-badge">Security</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección 3: Servicios -->
+    <section class="section">
+        <div class="section-content">
+            <h2><span class="title-bracket">$</span> NUESTROS SERVICIOS</h2>
+            <p>$ Combinamos desarrollo de élite con seguridad ofensiva y defensiva</p>
+            <div class="developers-container">
+                <div class="developer-card">
+                    <h3>🔐 DESARROLLO SEGURO</h3>
+                    <p>Aplicaciones web y móvil blindadas con las mejores prácticas de seguridad desde el inicio del desarrollo.</p>
+                </div>
+                <div class="developer-card">
+                    <h3>⚡ PERFORMANCE MAX</h3>
+                    <p>Sitios rápidos, modernos y escalables para cualquier volumen de tráfico.</p>
+                </div>
+                <div class="developer-card">
+                    <h3>🛡️ AUDITORÍA OFENSIVA</h3>
+                    <p>Análisis de seguridad penetrante y red team testing de tu infraestructura completa.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Sección 4: Contacto -->
+    <section class="section">
+        <div class="section-content">
+            <h2><span class="title-bracket">$</span> CONEXIÓN DIRECTA</h2>
+            <p>$ Estamos listos para llevar tu proyecto a otro nivel</p>
+            <a href="https://wa.me/523326711626?text=Hola%20DevSecurity%20Tech!%20Me%20interesa%20sus%20servicios" target="_blank" class="cta-button">[ 📱 CONTÁCTANOS POR WHATSAPP ]</a>
+        </div>
+    </section>
+
+    <div class="scroll-indicator">DESPLÁZATE</div>
+
+    <script>
+        // =============================================
+        // PORTFOLIO - Sistema de UI
+        // =============================================
+        
+        const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        const isTouch = 'ontouchstart' in window || navigator.maxTouchPoints > 0;
+
+        const cursor = document.querySelector('.custom-cursor');
+        let mouseX = 0;
+        let mouseY = 0;
+        let cursorX = 0;
+        let cursorY = 0;
+        let lastTrailTime = 0;
+        const trailInterval = 30;
+
+        // Sistema de carga animado
+        const loadingBar = document.getElementById('loadingBar');
+        const loadingPercentage = document.getElementById('loadingPercentage');
+        const systemLog = document.getElementById('systemLog');
+
+        const loadingSteps = [
+            { percent: 15, message: '> Cargando módulos de seguridad...', delay: 300 },
+            { percent: 30, message: '> Inicializando firewall...', delay: 400 },
+            { percent: 45, message: '> Verificando conexiones SSL/TLS...', delay: 500 },
+            { percent: 60, message: '> Compilando componentes React...', delay: 400 },
+            { percent: 75, message: '> Estableciendo túneles seguros...', delay: 450 },
+            { percent: 90, message: '> Optimizando rendimiento...', delay: 400 },
+            { percent: 100, message: '<span class="log-success">✓ SISTEMA OPERATIVO</span>', delay: 500 }
+        ];
+
+        let currentStep = 0;
+
+        function animateLoading() {
+            if (currentStep < loadingSteps.length) {
+                const step = loadingSteps[currentStep];
+                
+                setTimeout(() => {
+                    loadingBar.style.width = step.percent + '%';
+                    loadingPercentage.textContent = step.percent + '%';
+                    
+                    const logLine = document.createElement('div');
+                    logLine.className = 'log-line';
+                    logLine.innerHTML = step.message;
+                    systemLog.appendChild(logLine);
+                    
+                    while (systemLog.children.length > 3) {
+                        systemLog.removeChild(systemLog.firstChild);
+                    }
+                    
+                    currentStep++;
+                    animateLoading();
+                }, step.delay);
+            }
+        }
+
+        setTimeout(() => {
+            animateLoading();
+        }, 500);
+
+        // Cursor solo en desktop
+        if (!isMobile && !isTouch) {
+            document.addEventListener('mousemove', (e) => {
+                mouseX = e.clientX;
+                mouseY = e.clientY;
+                
+                const now = Date.now();
+                if (now - lastTrailTime > trailInterval) {
+                    createTrail(mouseX, mouseY);
+                    lastTrailTime = now;
+                }
+            });
+
+            function animateCursor() {
+                const dx = mouseX - cursorX;
+                const dy = mouseY - cursorY;
+                
+                cursorX += dx * 0.2;
+                cursorY += dy * 0.2;
+                
+                if (cursor) {
+                    cursor.style.left = cursorX + 'px';
+                    cursor.style.top = cursorY + 'px';
+                }
+                
+                requestAnimationFrame(animateCursor);
+            }
+            animateCursor();
+
+            function createTrail(x, y) {
+                const trail = document.createElement('div');
+                trail.className = 'cursor-trail';
+                trail.style.left = x + 'px';
+                trail.style.top = y + 'px';
+                document.body.appendChild(trail);
+                
+                setTimeout(() => {
+                    trail.remove();
+                }, 500);
+            }
+
+            const interactiveElements = document.querySelectorAll('button, a, .skill-badge, .developer-card');
+            interactiveElements.forEach(el => {
+                el.addEventListener('mouseenter', () => {
+                    if (cursor) cursor.classList.add('hover');
+                });
+                el.addEventListener('mouseleave', () => {
+                    if (cursor) cursor.classList.remove('hover');
+                });
+            });
+
+            document.addEventListener('click', (e) => {
+                createClickParticles(e.clientX, e.clientY);
+            });
+
+            function createClickParticles(x, y) {
+                const particleCount = 8;
+                
+                for (let i = 0; i < particleCount; i++) {
+                    const particle = document.createElement('div');
+                    particle.className = 'cursor-particle';
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    
+                    const angle = (Math.PI * 2 * i) / particleCount;
+                    const velocity = 3;
+                    const vx = Math.cos(angle) * velocity;
+                    const vy = Math.sin(angle) * velocity;
+                    
+                    document.body.appendChild(particle);
+                    
+                    animateParticle(particle, x, y, vx, vy);
+                }
+            }
+
+            function animateParticle(particle, startX, startY, vx, vy) {
+                let x = startX;
+                let y = startY;
+                let opacity = 1;
+                let frame = 0;
+                const maxFrames = 60;
+                
+                function animate() {
+                    frame++;
+                    x += vx;
+                    y += vy;
+                    opacity -= 1 / maxFrames;
+                    
+                    particle.style.left = x + 'px';
+                    particle.style.top = y + 'px';
+                    particle.style.opacity = opacity;
+                    
+                    if (frame < maxFrames) {
+                        requestAnimationFrame(animate);
+                    } else {
+                        particle.remove();
+                    }
+                }
+                
+                animate();
+            }
+        }
+
+        function scrollToSection(index) {
+            const sections = document.querySelectorAll('.section');
+            if (sections[index]) {
+                sections[index].scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        let hasScrolled = false;
+        window.addEventListener('scroll', () => {
+            const scrollIndicator = document.querySelector('.scroll-indicator');
+            if (!hasScrolled && window.scrollY > 100) {
+                scrollIndicator.style.opacity = '0';
+                scrollIndicator.style.pointerEvents = 'none';
+                hasScrolled = true;
+            } else if (hasScrolled && window.scrollY < 100) {
+                scrollIndicator.style.opacity = '1';
+                scrollIndicator.style.pointerEvents = 'auto';
+                hasScrolled = false;
+            }
+        });
+
+        // Prevenir zoom en doble tap en iOS
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', (e) => {
+            const now = Date.now();
+            if (now - lastTouchEnd <= 300) {
+                e.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+
+        // Fix para viewport height en móviles
+        function setViewportHeight() {
+            let vh = window.innerHeight * 0.01;
+            document.documentElement.style.setProperty('--vh', `${vh}px`);
+        }
+
+        setViewportHeight();
+        window.addEventListener('resize', setViewportHeight);
+        window.addEventListener('orientationchange', setViewportHeight);
+    </script>
+</body>
+</html>
